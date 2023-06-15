@@ -26,7 +26,13 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
+#ifdef __KERNEL__
+#include <linux/types.h>
+#elif
 #include <inttypes.h>
+#endif
+
+#define PRIu8		"u"
 
 struct Protocol {
     const char *const name;
@@ -35,5 +41,6 @@ struct Protocol {
     const char *const abort_message;
     const size_t abort_message_len;
 };
+
 
 #endif

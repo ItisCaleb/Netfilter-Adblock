@@ -1,3 +1,11 @@
 host_table.h
 .vscode
 adblock
+*.cmd
+*.ko
+*.o
+*.mod
+*.mod.*
+modules.order
+Module.symvers
+.tmp_*

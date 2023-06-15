@@ -16,5 +16,5 @@ fi
 echo $'%{\n%}\n%%' > hosts.gperf
 cat hosts >> hosts.gperf
 echo $'\n%%' >> hosts.gperf
-gperf -L KR-C hosts.gperf > "$1/host_table.h"
+gperf -L ANSI-C hosts.gperf > "$1/host_table.h"
 rm hosts.gperf

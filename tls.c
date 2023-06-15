@@ -28,14 +28,21 @@
  * extension.  This was created based primarily on Wireshark dissection of a
  * TLS handshake and RFC4366.
  */
+#ifdef __KERNEL__
+#include <linux/slab.h>
+#define printf printk
+#define malloc(_SIZE) kmalloc(_SIZE, GFP_KERNEL) 
+#else
 #include <stdio.h>
 #include <stdlib.h> /* malloc() */
 #include <stdint.h>
 #include <string.h> /* strncpy() */
 #include <sys/socket.h>
 #include <sys/types.h>
+#endif
+
+
 #include "tls.h"
-#include "protocol.h"
 
 #define SERVER_NAME_LEN 256
 #define TLS_HEADER_LEN 5
@@ -233,7 +240,7 @@ parse_server_name_extension(const uint8_t *data, size_t data_len,
             case 0x00: /* host_name */
                 *hostname = malloc(len + 1);
                 if (*hostname == NULL) {
-                    fprintf(stderr,"malloc() failure\n");
+                    printf("malloc() failure\n");
                     return -4;
                 }
 
@@ -243,7 +250,7 @@ parse_server_name_extension(const uint8_t *data, size_t data_len,
             
                 return len;
             default:
-                printf("Unknown server name extension name type: %\n" PRIu8,
+                printf("Unknown server name extension name type: %"PRIu8"\n" ,
                       data[pos]);
         }
         pos += 3 + len;

@@ -11,6 +11,7 @@
 
 #include "host_table.h"
 #include "tls.h"
+#include "http.h"
 #include <libnetfilter_queue/libnetfilter_queue.h>
 
 #define IPTYPE 8
@@ -72,12 +73,7 @@ static u_int32_t parse_pkt(struct nfq_data *tb, char **host) {
         Get Host from HTTP header
     */
     else if (strncmp(tcp_data_area, "GET", 3) == 0) {
-      char *start = strstr(tcp_data_area, "Host: ") + 6;
-      char *end = strstr(start, "\r\n");
-      int len = end - start;
-      *host = malloc(len + 1);
-      strncpy(*host, start, len);
-      (*host)[len] = '\0';
+      http_protocol->parse_packet(tcp_data_area, tcp_data_len, host);
     }
   }
 
