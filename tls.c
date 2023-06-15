@@ -31,16 +31,15 @@
 #ifdef __KERNEL__
 #include <linux/slab.h>
 #define printf printk
-#define malloc(_SIZE) kmalloc(_SIZE, GFP_KERNEL) 
+#define malloc(_SIZE) kmalloc(_SIZE, GFP_KERNEL)
 #else
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h> /* malloc() */
-#include <stdint.h>
 #include <string.h> /* strncpy() */
 #include <sys/socket.h>
 #include <sys/types.h>
 #endif
-
 
 #include "tls.h"
 
@@ -55,14 +54,12 @@
 #define MIN(X, Y) ((X) < (Y) ? (X) : (Y))
 #endif
 
-
-static int parse_tls_header(const uint8_t*, size_t, char **);
-static int parse_extensions(const uint8_t*, size_t, char **);
-static int parse_server_name_extension(const uint8_t*, size_t, char **);
-
+static int parse_tls_header(const uint8_t *, size_t, char **);
+static int parse_extensions(const uint8_t *, size_t, char **);
+static int parse_server_name_extension(const uint8_t *, size_t, char **);
 
 static const char tls_alert[] = {
-    0x15, /* TLS Alert */
+    0x15,       /* TLS Alert */
     0x03, 0x01, /* TLS version  */
     0x00, 0x02, /* Payload length */
     0x02, 0x28, /* Fatal, handshake failure */
@@ -71,11 +68,10 @@ static const char tls_alert[] = {
 const struct Protocol *const tls_protocol = &(struct Protocol){
     .name = "tls",
     .default_port = 443,
-    .parse_packet = (int (*const)(const char *, size_t, char **))&parse_tls_header,
+    .parse_packet =
+        (int (*const)(const char *, size_t, char **)) & parse_tls_header,
     .abort_message = tls_alert,
-    .abort_message_len = sizeof(tls_alert)
-};
-
+    .abort_message_len = sizeof(tls_alert)};
 
 /* Parse a TLS packet for the Server Name Indication extension in the client
  * hello handshake, returning the first servername found (pointer to static
@@ -90,8 +86,10 @@ const struct Protocol *const tls_protocol = &(struct Protocol){
  *  -4   - malloc failure
  *  < -4 - Invalid TLS client hello
  */
-static int
-parse_tls_header(const uint8_t *data, size_t data_len, char **hostname) {
+static int parse_tls_header(const uint8_t *data,
+                            size_t data_len,
+                            char **hostname)
+{
     uint8_t tls_content_type;
     uint8_t tls_version_major;
     uint8_t tls_version_minor;
@@ -125,15 +123,15 @@ parse_tls_header(const uint8_t *data, size_t data_len, char **hostname) {
     tls_version_major = data[1];
     tls_version_minor = data[2];
     if (tls_version_major < 3) {
-        printf("Received SSL %" PRIu8 ".%" PRIu8 " handshake which can not support SNI.\n",
-              tls_version_major, tls_version_minor);
+        printf("Received SSL %" PRIu8 ".%" PRIu8
+               " handshake which can not support SNI.\n",
+               tls_version_major, tls_version_minor);
 
         return -2;
     }
 
     /* TLS record length */
-    len = ((size_t)data[3] << 8) +
-        (size_t)data[4] + TLS_HEADER_LEN;
+    len = ((size_t) data[3] << 8) + (size_t) data[4] + TLS_HEADER_LEN;
     data_len = MIN(data_len, len);
 
     /* Check we received entire TLS record length */
@@ -146,9 +144,9 @@ parse_tls_header(const uint8_t *data, size_t data_len, char **hostname) {
     if (pos + 1 > data_len) {
         return -5;
     }
-    //printf("handshake type: %u\n", data[pos]);
+    // printf("handshake type: %u\n", data[pos]);
     if (data[pos] != TLS_HANDSHAKE_TYPE_CLIENT_HELLO) {
-        //printf("Not a client hello\n");
+        // printf("Not a client hello\n");
 
         return -5;
     }
@@ -165,19 +163,19 @@ parse_tls_header(const uint8_t *data, size_t data_len, char **hostname) {
     /* Session ID */
     if (pos + 1 > data_len)
         return -5;
-    len = (size_t)data[pos];
+    len = (size_t) data[pos];
     pos += 1 + len;
 
     /* Cipher Suites */
     if (pos + 2 > data_len)
         return -5;
-    len = ((size_t)data[pos] << 8) + (size_t)data[pos + 1];
+    len = ((size_t) data[pos] << 8) + (size_t) data[pos + 1];
     pos += 2 + len;
 
     /* Compression Methods */
     if (pos + 1 > data_len)
         return -5;
-    len = (size_t)data[pos];
+    len = (size_t) data[pos];
     pos += 1 + len;
     if (pos == data_len && tls_version_major == 3 && tls_version_minor == 0) {
         printf("Received SSL 3.0 handshake without extensions\n");
@@ -187,7 +185,7 @@ parse_tls_header(const uint8_t *data, size_t data_len, char **hostname) {
     /* Extensions */
     if (pos + 2 > data_len)
         return -5;
-    len = ((size_t)data[pos] << 8) + (size_t)data[pos + 1];
+    len = ((size_t) data[pos] << 8) + (size_t) data[pos + 1];
     pos += 2;
 
     if (pos + len > data_len)
@@ -195,16 +193,17 @@ parse_tls_header(const uint8_t *data, size_t data_len, char **hostname) {
     return parse_extensions(data + pos, len, hostname);
 }
 
-static int
-parse_extensions(const uint8_t *data, size_t data_len, char **hostname) {
+static int parse_extensions(const uint8_t *data,
+                            size_t data_len,
+                            char **hostname)
+{
     size_t pos = 0;
     size_t len;
 
     /* Parse each 4 bytes for the extension header */
     while (pos + 4 <= data_len) {
         /* Extension Length */
-        len = ((size_t)data[pos + 2] << 8) +
-            (size_t)data[pos + 3];
+        len = ((size_t) data[pos + 2] << 8) + (size_t) data[pos + 3];
 
         /* Check if it's a server name extension */
         if (data[pos] == 0x00 && data[pos + 1] == 0x00) {
@@ -223,35 +222,35 @@ parse_extensions(const uint8_t *data, size_t data_len, char **hostname) {
     return -2;
 }
 
-static int
-parse_server_name_extension(const uint8_t *data, size_t data_len,
-        char **hostname) {
+static int parse_server_name_extension(const uint8_t *data,
+                                       size_t data_len,
+                                       char **hostname)
+{
     size_t pos = 2; /* skip server name list length */
     size_t len;
 
     while (pos + 3 < data_len) {
-        len = ((size_t)data[pos + 1] << 8) +
-            (size_t)data[pos + 2];
+        len = ((size_t) data[pos + 1] << 8) + (size_t) data[pos + 2];
 
         if (pos + 3 + len > data_len)
             return -5;
 
         switch (data[pos]) { /* name type */
-            case 0x00: /* host_name */
-                *hostname = malloc(len + 1);
-                if (*hostname == NULL) {
-                    printf("malloc() failure\n");
-                    return -4;
-                }
+        case 0x00:           /* host_name */
+            *hostname = malloc(len + 1);
+            if (*hostname == NULL) {
+                printf("malloc() failure\n");
+                return -4;
+            }
 
-                strncpy(*hostname, (const char *)(data + pos + 3), len);
+            strncpy(*hostname, (const char *) (data + pos + 3), len);
 
-                (*hostname)[len] = '\0';
-            
-                return len;
-            default:
-                printf("Unknown server name extension name type: %"PRIu8"\n" ,
-                      data[pos]);
+            (*hostname)[len] = '\0';
+
+            return len;
+        default:
+            printf("Unknown server name extension name type: %" PRIu8 "\n",
+                   data[pos]);
         }
         pos += 3 + len;
     }
