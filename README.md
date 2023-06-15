@@ -10,6 +10,11 @@ $ make
 $ ./adblock
 ```
 
+To run as kernel module
+```sh
+$ make kernel
+```
+
 # Update Host Block List
 Just append the host you want to block to the file `hosts`
 
