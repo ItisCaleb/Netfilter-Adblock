@@ -19,7 +19,7 @@
     return data length if such data exist
     else return -1
 */
-static int extract_tcp_data(struct sk_buff *skb, char **data, bool *should_free)
+static int extract_tcp_data(struct sk_buff *skb, char **data)
 {
     struct iphdr *ip = NULL;
     struct tcphdr *tcp = NULL;
@@ -52,7 +52,7 @@ static int extract_tcp_data(struct sk_buff *skb, char **data, bool *should_free)
     return data length if such data exist
     else return -1
 */
-static int extract_udp_data(struct sk_buff *skb, char **data, bool *should_free)
+static int extract_udp_data(struct sk_buff *skb, char **data)
 {
     struct iphdr *ip = NULL;
     struct udphdr *udp = NULL;
@@ -84,7 +84,6 @@ static unsigned int blocker_hook(void *priv,
 
     char *data = NULL;
     char *host = NULL;
-    bool should_free = false;
     const char *flag;
     const struct Protocol *proto = NULL;
     int tcpflag = 0;
@@ -92,7 +91,7 @@ static unsigned int blocker_hook(void *priv,
     /*
         Extract TCP data
     */
-    int len = extract_tcp_data(skb, &data, &should_free);
+    int len = extract_tcp_data(skb, &data);
     if (len != -1) {
         tcpflag = 1;
         if (data[0] == 0x16) {
@@ -102,7 +101,11 @@ static unsigned int blocker_hook(void *priv,
             proto = http_protocol;
         }
     }
-    len = extract_udp_data(skb, &data, &should_free);
+    
+    /*
+        Extract UDP data
+    */
+    len = extract_udp_data(skb, &data);
     if (len != -1) {
         if (ntohs(udp_hdr(skb)->dest) == 53) {
             proto = dns_protocol;
@@ -132,8 +135,6 @@ static unsigned int blocker_hook(void *priv,
         }
         kfree(host);
     }
-    if (should_free)
-        kfree(data);
 
     return ret;
 }
