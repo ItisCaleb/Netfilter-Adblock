@@ -28,7 +28,7 @@
 
 #ifdef __KERNEL__
 #include <linux/types.h>
-#elif
+#else
 #include <inttypes.h>
 #endif
 
