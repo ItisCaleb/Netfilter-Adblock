@@ -155,4 +155,4 @@ static void mod_exit(void)
 module_init(mod_init);
 module_exit(mod_exit);
 
-MODULE_LICENSE("Dual GPL/MIT");
+MODULE_LICENSE("GPL");
