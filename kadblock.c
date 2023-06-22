@@ -6,6 +6,8 @@
 #include <linux/skbuff.h>
 #include <linux/tcp.h>
 #include <linux/udp.h>
+#include <net/ip.h>
+#include <net/tcp.h>
 
 #include "dns.h"
 #include "host_table.h"
@@ -95,20 +97,21 @@ static unsigned int blocker_hook(void *priv,
     if (len != -1) {
         tcpflag = 1;
         if (data[0] == 0x16) {
+            printk("pid: %d", current->pid);
             printk("TLS handshake len: %d", len);
             proto = tls_protocol;
         } else if (strncmp(data, "GET ", sizeof("GET ") - 1) == 0) {
             proto = http_protocol;
         }
     }
-    
+
     /*
         Extract UDP data
     */
     len = extract_udp_data(skb, &data);
     if (len != -1) {
         if (ntohs(udp_hdr(skb)->dest) == 53) {
-            proto = dns_protocol;
+            // proto = dns_protocol;
         }
     }
 

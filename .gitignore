@@ -9,3 +9,5 @@ adblock
 modules.order
 Module.symvers
 .tmp_*
+.output
+ssl_sniff.skel.h

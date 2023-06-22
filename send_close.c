@@ -100,7 +100,7 @@ void send_tcp_reset(struct sk_buff *oldskb, const struct nf_hook_state *state)
     tcph->rst = 1;
 
     nskb->sk = inet_lookup_established(
-        state->net, state->net->ipv4.tcp_death_row.hashinfo, oiph->saddr,
+        state->net, state->net->ipv4.tcp_death_row->hashinfo, oiph->saddr,
         oth->source, oiph->daddr, oth->dest, oldskb->dev->ifindex);
     send_tcp(nskb, oldskb, tcph, niph, state);
 }
