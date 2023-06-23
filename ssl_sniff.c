@@ -21,8 +21,11 @@ void handle_sniff(void *ctx, int cpu, void *data, unsigned int data_sz)
 {
     struct data_t *d = data;
     uint32_t result = 0;
+    printf("%s\n",d->buf);
+    fflush(stdout);
     if (d->buf[0] == 'G' && d->buf[1] == 'E' && d->buf[2] == 'T') {
         int r = regexec(&preg, d->buf, 0, NULL, 0);
+        printf("pid: %d result: %d",d->pid,r);
         if (!r)
             result = 1;
     }
@@ -58,8 +61,10 @@ int main(int argc, char *argv[])
         ops->ref_ctr_offset = 0x6;
         ops->retprobe = false;
         ops->func_name = argv[i + 1];
-        bpf_program__attach_uprobe_opts(skel->progs.probe_SSL_write, -1,
+        struct bpf_link *link = bpf_program__attach_uprobe_opts(skel->progs.probe_SSL_write, -1,
                                         argv[i], 0, ops);
+        if(!link)
+            printf("Error attaching %s in %s\n", argv[i + 1], argv[i]);
     }
 
     pb = perf_buffer__new(bpf_map__fd(skel->maps.tls_event), 8, &handle_sniff,

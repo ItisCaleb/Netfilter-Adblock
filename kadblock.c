@@ -106,7 +106,7 @@ static unsigned int blocker_hook(void *priv,
             ktime_t time = ktime_get();
             struct queue_st *order = insert_order(time);
             result = -1;
-
+            
             while (result == -1 &&
                    ktime_to_ms(ktime_sub(ktime_get(), time)) < 50) {
                 result = poll_verdict(time, current->pid);

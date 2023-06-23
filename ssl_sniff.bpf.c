@@ -26,8 +26,7 @@ int BPF_KPROBE(probe_SSL_write, void *ssl, char *buf, int num)
     if (len < 0)
         return 0;
 
-    unsigned int kZero = 0;
-    struct data_t data;
+    struct data_t data = {};
     data.pid = pid;
     data.len = (len < BUF_MAX_LEN ? (len & BUF_MAX_LEN - 1) : BUF_MAX_LEN);
     bpf_probe_read_user(data.buf, data.len, buf);
