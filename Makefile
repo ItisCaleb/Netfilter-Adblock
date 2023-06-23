@@ -5,9 +5,16 @@ TARGET_MODULE := adblock
 
 
 obj-m := $(TARGET_MODULE).o
-adblock-objs := kadblock.o tls.o http.o dns.o send_close.o
+adblock-objs := kadblock.o dns.o send_close.o verdict_ssl.o
 
 PWD = $(shell pwd)
+
+BPF_PROG = ssl_sniff
+
+all:
+	$(MAKE) kernel
+	$(MAKE) $(BPF_PROG)
+	sudo python3 bpf.py
 
 user:
 	./generate_hash.sh .
@@ -27,7 +34,7 @@ kernel:
 	
 clean:
 	$(MAKE) -C $(KDIR) M=$(PWD) clean
-	rm -rf adblock host_table.h .tmp*
+	rm -rf adblock ssl_sniff host_table.h .tmp* ssl_sniff
 
 OUTPUT := .output
 CLANG ?= clang
@@ -41,19 +48,18 @@ ARCH := $(shell uname -m | sed 's/x86_64/x86/')
 CLANG_BPF_SYS_INCLUDES ?= $(shell clang -v -E - </dev/null 2>&1 \
 	| sed -n '/<...> search starts here:/,/End of search list./{ s| \(/.*\)|-idirafter \1|p }')
 
-APPS = ssl_sniff
+
 
 $(OUTPUT) $(OUTPUT)/libbpf:
 	$(call msg,MKDIR,$@)
 	$(Q)mkdir -p $@
 
 # Build final application
-$(APPS): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) | $(OUTPUT)
+$(BPF_PROG): %: $(OUTPUT)/%.o $(LIBBPF_OBJ) | $(OUTPUT)
 	$(call msg,BINARY,$@)
 	$(Q)$(CC) $(CFLAGS) $^ -lelf -lz -o $@
-	sudo ./$@
 
-$(patsubst %,$(OUTPUT)/%.o,$(APPS)): %.o: %.skel.h
+$(patsubst %,$(OUTPUT)/%.o,$(BPF_PROG)): %.o: %.skel.h
 
 # Build user-space code
 $(OUTPUT)/%.o: %.c $(wildcard %.h) | $(OUTPUT)

@@ -11,3 +11,4 @@ Module.symvers
 .tmp_*
 .output
 ssl_sniff.skel.h
+ssl_sniff

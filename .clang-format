@@ -1,6 +1,7 @@
 BasedOnStyle: Chromium
 Language: Cpp
 MaxEmptyLinesToKeep: 3
+SortIncludes: false
 IndentCaseLabels: false
 AllowShortIfStatementsOnASingleLine: false
 AllowShortCaseLabelsOnASingleLine: false

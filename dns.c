@@ -10,7 +10,7 @@
 #include <sys/types.h>
 #endif
 
-#include "http.h"
+#include "dns.h"
 
 static int parse_host(const char *, size_t, char **);
 
@@ -26,6 +26,7 @@ static int parse_host(const char *data, size_t data_len, char **hostname)
     int idx = 0;
     char *host;
     int qr;
+    int count, len = 0;
     /*ID 2 bytes*/
     idx += 2;
     /*QR query=0 response=1*/
@@ -38,8 +39,6 @@ static int parse_host(const char *data, size_t data_len, char **hostname)
     */
     idx += 10;
 
-    int count = 0;
-    int len = 0;
     /* max domain name length + \0 */
     host = malloc(253 + 1);
 

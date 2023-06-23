@@ -22,6 +22,12 @@ And make sure you have cloned the libbpf submodule
 $ sudo apt get install clang linux-tools-common
 $ make ssl_sniff
 ```
+
+The full functionality need both kernel module and bpf program.
+```sh
+$ make
+```
+
 # Update Host Block List
 Just append the host you want to block to the file `hosts`
 
