@@ -21,11 +21,8 @@ void handle_sniff(void *ctx, int cpu, void *data, unsigned int data_sz)
 {
     struct data_t *d = data;
     uint32_t result = 0;
-    printf("%s\n",d->buf);
-    fflush(stdout);
     if (d->buf[0] == 'G' && d->buf[1] == 'E' && d->buf[2] == 'T') {
         int r = regexec(&preg, d->buf, 0, NULL, 0);
-        printf("pid: %d result: %d",d->pid,r);
         if (!r)
             result = 1;
     }
